@@ -1,0 +1,85 @@
+﻿CREATE TABLE Users (
+    user_id INT PRIMARY KEY IDENTITY(1,1),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    role VARCHAR(20) CHECK (role IN ('user', 'business')) NOT NULL,
+    created_at DATETIME DEFAULT GETDATE()
+);
+CREATE TABLE Restaurants (
+    restaurant_id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT FOREIGN KEY REFERENCES Users(user_id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10,8) NOT NULL,
+    longitude DECIMAL(11,8) NOT NULL,
+    description TEXT,
+    max_tables INT NOT NULL,
+    opening_hours NVARCHAR(MAX),  -- Lưu JSON
+    is_approved BIT DEFAULT 0,
+    created_at DATETIME DEFAULT GETDATE()
+);
+CREATE TABLE Tables (
+    table_id INT PRIMARY KEY IDENTITY(1,1),
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id) ON DELETE CASCADE,
+    table_number VARCHAR(50) NOT NULL,
+    capacity INT NOT NULL,
+    type VARCHAR(20) CHECK (type IN ('standard', 'vip', 'outdoor')) NOT NULL,
+    is_available BIT DEFAULT 1
+);
+CREATE TABLE MenuItems (
+    menu_item_id INT PRIMARY KEY IDENTITY(1,1),
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    category VARCHAR(20) CHECK (category IN ('appetizer', 'main', 'dessert', 'drink')),
+    is_available BIT DEFAULT 1
+);
+CREATE TABLE Bookings (
+    booking_id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT FOREIGN KEY REFERENCES Users(user_id) ON DELETE SET NULL,
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id) ON DELETE NO ACTION,
+    booking_time DATETIME NOT NULL,
+    number_of_guests INT NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'confirmed', 'cancelled')) DEFAULT 'pending',
+    special_request TEXT
+);
+CREATE TABLE BookingTable (
+    booking_id INT FOREIGN KEY REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    table_id INT FOREIGN KEY REFERENCES Tables(table_id) ON DELETE CASCADE,
+    PRIMARY KEY (booking_id, table_id)
+);
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY IDENTITY(1,1),
+    booking_id INT FOREIGN KEY REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    menu_item_id INT FOREIGN KEY REFERENCES MenuItems(menu_item_id) ON DELETE CASCADE,
+    quantity INT NOT NULL,
+    note TEXT
+);
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY IDENTITY(1,1),
+    booking_id INT FOREIGN KEY REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(50) CHECK (payment_method IN ('momo', 'vnpay', 'zalopay', 'credit_card', 'cash')) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
+    transaction_id VARCHAR(255)
+);
+CREATE TABLE Reviews (
+    review_id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT FOREIGN KEY REFERENCES Users(user_id) ON DELETE SET NULL,
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id) ON DELETE NO ACTION,
+    rating TINYINT CHECK (rating BETWEEN 1 AND 5) NOT NULL,
+    comment TEXT,
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+
+CREATE TABLE LoyaltyPoints (
+    user_id INT PRIMARY KEY REFERENCES Users(user_id) ON DELETE CASCADE,
+    points INT DEFAULT 0
+);
+
+
+
