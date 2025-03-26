@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -6,16 +6,17 @@ using System.Web.Mvc;
 
 namespace BookingRestaurant.Controllers
 {
-    public class HomeController : Controller
+    public class DatBanController : Controller
     {
         public ActionResult Index()
         {
             return View();
         }
-        public ActionResult detailnhahang()
+        public ActionResult DatBan()
         {
             return View();
         }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
